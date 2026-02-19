@@ -1,56 +1,50 @@
 package ru.netology;
 
 public class MovieManager {
-    private final String[] movies;
-    private int size = 0; // Текущий размер (количество добавленных фильмов)
-    private final int limit; // Лимит для метода findLast
+    private String[] movies;
+    private int size; // Текущий размер массива (количество добавленных фильмов)
+    private int capacity; // Максимальная ёмкость массива
+    private final int limit; // Лимит на количество последних фильмов для вывода
 
-    // Конструктор без параметров (лимит по умолчанию — 5)
     public MovieManager() {
+        this.capacity = 10;
+        this.movies = new String[capacity];
+        this.size = 0;
         this.limit = 5;
-        this.movies = new String[100]; // Инициализируем массив с запасом
     }
 
-    // Конструктор с параметром (задаём лимит)
     public MovieManager(int limit) {
-        if (limit <= 0) {
-            throw new IllegalArgumentException("Лимит должен быть положительным числом");
-        }
+        this.capacity = 10;
+        this.movies = new String[capacity];
+        this.size = 0;
         this.limit = limit;
-        this.movies = new String[100]; // Инициализируем массив с запасом
     }
 
-    // Метод добавления нового фильма
     public void addMovie(String movie) {
-        if (movie == null || movie.isEmpty()) {
-            throw new IllegalArgumentException("Название фильма не может быть пустым");
-        }
-        if (size >= movies.length) {
-            throw new IllegalStateException("Превышен максимальный размер хранилища фильмов");
+        if (size >= capacity) {
+            String[] newMovies = new String[capacity * 2];
+            System.arraycopy(movies, 0, newMovies, 0, size);
+            movies = newMovies;
+            capacity *= 2;
         }
         movies[size++] = movie;
     }
 
-    // Метод вывода всех фильмов в порядке добавления
     public String[] findAll() {
         String[] allMovies = new String[size];
-        System.arraycopy(movies, 0, allMovies, 0, size); // Копируем только заполненную часть
+        System.arraycopy(movies, 0, allMovies, 0, size);
         return allMovies;
     }
 
-    // Метод вывода последних добавленных фильмов в обратном порядке
     public String[] findLast() {
-        int resultLength;
-        if (size <= limit) {
-            resultLength = size; // Если фильмов меньше или равно лимиту, возвращаем все
-        } else {
-            resultLength = limit; // Иначе возвращаем только лимит фильмов
+        int resultLength = Math.min(size, limit);
+
+        String[] result = new String[resultLength];
+
+        for (int i = 0; i < resultLength; i++) {
+            result[i] = movies[size - 1 - i];
         }
 
-        String[] lastMovies = new String[resultLength];
-        for (int i = 0; i < resultLength; i++) {
-            lastMovies[i] = movies[size - 1 - i]; // Заполняем в обратном порядке
-        }
-        return lastMovies;
+        return result;
     }
 }

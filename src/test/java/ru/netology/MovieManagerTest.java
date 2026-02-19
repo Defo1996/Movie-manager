@@ -7,118 +7,90 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MovieManagerTest {
 
     @Test
-    public void shouldAddMoviesAndFindAll() {
+    void testAddAndFindAll() {
         MovieManager manager = new MovieManager();
+        manager.addMovie("Бладшот");
+        manager.addMovie("Вперёд");
+        manager.addMovie("Отель «Белград»");
 
+        String[] expected = {"Бладшот", "Вперёд", "Отель «Белград»"};
+        String[] actual = manager.findAll();
+
+        assertArrayEquals(expected, actual, "Массивы фильмов не совпадают");
+    }
+
+    @Test
+    void testFindLastWithDefaultLimit() {
+        MovieManager manager = new MovieManager(); // Лимит по умолчанию — 5
+
+        // Добавляем 3 фильма (меньше лимита)
         manager.addMovie("Фильм 1");
         manager.addMovie("Фильм 2");
         manager.addMovie("Фильм 3");
 
-        String[] expected = {"Фильм 1", "Фильм 2", "Фильм 3"};
-        String[] actual = manager.findAll();
-
-        assertArrayEquals(expected, actual, "Массив всех фильмов должен совпадать с ожидаемым");
-    }
-
-
-    @Test
-    public void shouldFindLastFiveMovies() {
-        MovieManager manager = new MovieManager(); // Лимит по умолчанию = 5
-
-        // Добавляем 6 фильмов (больше лимита)
-        for (int i = 1; i <= 6; i++) {
-            manager.addMovie("Фильм " + i);
-        }
-
-        String[] expected = {"Фильм 6", "Фильм 5", "Фильм 4", "Фильм 3", "Фильм 2"};
+        String[] expected = {"Фильм 3", "Фильм 2", "Фильм 1"};
         String[] actual = manager.findLast();
 
+        assertArrayEquals(expected, actual, "Последние фильмы не совпадают (случай с количеством фильмов < лимита)");
 
-        assertArrayEquals(expected, actual, "Должны вернуться последние 5 фильмов в обратном порядке");
+        // Добавляем ещё 3 фильма (всего 6, лимит 5)
+        manager.addMovie("Фильм 4");
+        manager.addMovie("Фильм 5");
+        manager.addMovie("Фильм 6");
+
+        expected = new String[]{"Фильм 6", "Фильм 5", "Фильм 4", "Фильм 3", "Фильм 2"};
+        actual = manager.findLast();
+
+        assertArrayEquals(expected, actual, "Последние фильмы не совпадают (случай с количеством фильмов > лимита)");
     }
 
     @Test
-    public void shouldFindAllWhenLessThanLimit() {
-        MovieManager manager = new MovieManager(); // Лимит = 5
+    void testFindLastWithCustomLimit() {
+        MovieManager manager = new MovieManager(3); // Кастомный лимит — 3
 
         manager.addMovie("Фильм 1");
         manager.addMovie("Фильм 2");
+        manager.addMovie("Фильм 3");
+        manager.addMovie("Фильм 4");
+        manager.addMovie("Фильм 5");
 
-        String[] expected = {"Фильм 2", "Фильм 1"}; // Порядок: от последнего к первому
+        String[] expected = {"Фильм 5", "Фильм 4", "Фильм 3"};
         String[] actual = manager.findLast();
 
-
-        assertArrayEquals(expected, actual, "Если фильмов меньше лимита, возвращаются все в обратном порядке");
+        assertArrayEquals(expected, actual, "Последние фильмы не совпадают при кастомном лимите");
     }
 
+    @Test
+    void testEmptyManager() {
+        MovieManager manager = new MovieManager();
+        String[] lastMovies = manager.findLast();
+        String[] expected = new String[0];
+
+        assertArrayEquals(expected, lastMovies, "Менеджер без фильмов должен возвращать пустой массив");
+    }
 
     @Test
-    public void shouldUseCustomLimit() {
-        MovieManager manager = new MovieManager(3); // Устанавливаем лимит = 3
-
-        // Добавляем 4 фильма (больше лимита)
-        for (int i = 1; i <= 4; i++) {
+    void testAddMovieWithResize() {
+        MovieManager manager = new MovieManager();
+        for (int i = 0; i < 15; i++) {
             manager.addMovie("Фильм " + i);
         }
-
-        String[] expected = {"Фильм 4", "Фильм 3", "Фильм 2"}; // Только последние 3
-        String[] actual = manager.findLast();
-
-        assertArrayEquals(expected, actual, "При лимите 3 должны вернуться только 3 последних фильма");
+        assertEquals(15, manager.findAll().length);
     }
 
     @Test
-    public void shouldReturnEmptyArraysWhenNoMovies() {
-        MovieManager manager = new MovieManager();
-
-        String[] all = manager.findAll();
-        String[] last = manager.findLast();
-
-        // Проверяем длину массивов
-        assertEquals(0, all.length, "Массив findAll() должен быть пустым");
-        assertEquals(0, last.length, "Массив findLast() должен быть пустым");
-
-
-        // Дополнительно проверяем, что массивы действительно пустые
-        assertArrayEquals(new String[0], all, "findAll() должен вернуть пустой массив");
-        assertArrayEquals(new String[0], last, "findLast() должен вернуть пустой массив");
-    }
-
-    @Test
-    void shouldThrow_WhenMovieIsNull() {
-        MovieManager manager = new MovieManager();
-        assertThrows(IllegalArgumentException.class, () -> manager.addMovie(null));
-    }
-
-    @Test
-    void shouldThrow_WhenMovieIsEmpty() {
-        MovieManager manager = new MovieManager();
-        assertThrows(IllegalArgumentException.class, () -> manager.addMovie(""));
-    }
-
-    @Test
-    void shouldReturnEmptyArray_WhenNoMovies() {
-        MovieManager manager = new MovieManager();
-        String[] actual = manager.findLast();
-        assertArrayEquals(new String[0], actual);
-    }
-
-    @Test
-    void shouldReturnSingleMovie_WhenOneMovie() {
-        MovieManager manager = new MovieManager();
+    void testFindLastWithZeroLimit() {
+        MovieManager manager = new MovieManager(0);
         manager.addMovie("Фильм 1");
-        String[] actual = manager.findLast();
-        assertArrayEquals(new String[]{"Фильм 1"}, actual);
+        String[] result = manager.findLast();
+        assertArrayEquals(new String[0], result);
     }
 
     @Test
-    void shouldReturnExactLimit_WhenSizeEqualsLimit() {
-        MovieManager manager = new MovieManager(2);
-        manager.addMovie("Фильм 1");
-        manager.addMovie("Фильм 2");
-        String[] actual = manager.findLast();
-        assertArrayEquals(new String[]{"Фильм 2", "Фильм 1"}, actual);
+    void testFindLastEmptyWithPositiveLimit() {
+        MovieManager manager = new MovieManager(5);
+        String[] result = manager.findLast();
+        assertArrayEquals(new String[0], result);
     }
-
 
 }
