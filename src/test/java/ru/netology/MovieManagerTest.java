@@ -83,4 +83,42 @@ public class MovieManagerTest {
         assertArrayEquals(new String[0], all, "findAll() должен вернуть пустой массив");
         assertArrayEquals(new String[0], last, "findLast() должен вернуть пустой массив");
     }
+
+    @Test
+    void shouldThrow_WhenMovieIsNull() {
+        MovieManager manager = new MovieManager();
+        assertThrows(IllegalArgumentException.class, () -> manager.addMovie(null));
+    }
+
+    @Test
+    void shouldThrow_WhenMovieIsEmpty() {
+        MovieManager manager = new MovieManager();
+        assertThrows(IllegalArgumentException.class, () -> manager.addMovie(""));
+    }
+
+    @Test
+    void shouldReturnEmptyArray_WhenNoMovies() {
+        MovieManager manager = new MovieManager();
+        String[] actual = manager.findLast();
+        assertArrayEquals(new String[0], actual);
+    }
+
+    @Test
+    void shouldReturnSingleMovie_WhenOneMovie() {
+        MovieManager manager = new MovieManager();
+        manager.addMovie("Фильм 1");
+        String[] actual = manager.findLast();
+        assertArrayEquals(new String[]{"Фильм 1"}, actual);
+    }
+
+    @Test
+    void shouldReturnExactLimit_WhenSizeEqualsLimit() {
+        MovieManager manager = new MovieManager(2);
+        manager.addMovie("Фильм 1");
+        manager.addMovie("Фильм 2");
+        String[] actual = manager.findLast();
+        assertArrayEquals(new String[]{"Фильм 2", "Фильм 1"}, actual);
+    }
+
+
 }
